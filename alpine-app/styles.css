@@ -12,3 +12,55 @@ body {
 h1 {
     color: #333;
 }
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+}
+.food-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+}
+.food-item:last-child {
+    border-bottom: none;
+}
+.progress-bar-container {
+    width: 100px;
+    background-color: #f3f3f3;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.progress-bar {
+    background-color: #4caf50;
+    height: 20px;
+}
+.hidden {
+    display: none;
+}
+.btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.btn:hover {
+    background-color: #0056b3;
+}
+.form-container {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+.close-btn {
+    background-color: #dc3545;
+}
+.close-btn:hover {
+    background-color: #c82333;
+}
