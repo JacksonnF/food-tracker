@@ -33,42 +33,8 @@
     
 
     <div x-data="groceryManager()" class="container">
-        <!-- Section for displaying food items with progress bars -->
-        <section>
-            <h2>Food Items</h2>
-            <div>
-                <template x-for="item in foodItems" :key="item.name">
-                    <div class="food-item">
-                        <div>
-                            <strong x-text="item.name"></strong>
-                            <p x-text="'Expires in ' + item.expiresIn + ' days'"></p>
-                        </div>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" :style="{ width: item.progress + '%' }"></div>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </section>
-        <div x-data="{ redirectToPage() { window.location.href = 'buttons.html'; } }">
-            <button @click="redirectToPage" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Add Groceries
-            </button>
-        </div>
-
         <div class="container mx-auto py-6 px-4" x-data="datatables()" x-cloak>
             <h1 class="text-3xl py-4 border-b mb-10">The Fridge</h1>
-    
-            <div x-show="selectedRows.length" class="bg-teal-200 fixed top-0 left-0 right-0 z-40 w-full shadow">
-                <div class="container mx-auto px-4 py-4">
-                    <div class="flex md:items-center">
-                        <div class="mr-4 flex-shrink-0">
-                            <svg class="h-8 w-8 text-teal-600"  viewBox="0 0 20 20" fill="currentColor">  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
-                        </div>
-                        <div x-html="selectedRows.length + ' rows are selected'" class="text-teal-800 text-lg"></div>
-                    </div>
-                </div>
-            </div>
     
             <div class="overflow-x-auto bg-white rounded-lg shadow overflow-y-auto relative"
                 style="height: 405px;">
@@ -82,13 +48,30 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <template x-for="food in foods" :key="food.foodId">
+                        <template x-for="food in items" :key="food.foodId">
                             <tr>
                                 <td class="border-dashed border-t border-gray-200 foodId">
-                                    <span class="text-gray-700 px-6 py-3 flex items-center" x-text="food.foodId"></span>
+                                    <span class="text-gray-700 px-6 py-3 flex items-center" x-text="food.id"></span>
                                 </td>
                                 <td class="border-dashed border-t border-gray-200 foodName">
-                                    <span class="text-gray-700 px-6 py-3 flex items-center" x-text="food.foodName"></span>
+                                    <span class="text-gray-700 px-6 py-3 flex items-center" x-text="food.food_name"></span>
+                                </td>
+                                <td class="border-dashed border-t border-gray-200 currentCount">
+                                    <span class="text-gray-700 px-6 py-3 flex items-center" x-text="food.current_count"></span>
+                                </td>
+                                <td class="border-dashed border-t border-gray-200 purchaseDate">
+                                    <span class="text-gray-700 px-6 py-3 flex items-center" x-text="food.purchase_date"></span>
+                                </td>
+                                <td class="border-dashed border-t border-gray-200 expiryDate">
+                                    <span class="text-gray-700 px-6 py-3 flex items-center" x-text="food.actual_expiry"></span>
+                                </td>
+                                <td class="border-dashed border-t border-gray-200 daysRemaining"
+                                :class="{
+                                    'bg-green-100': food.days_remaining > 5, 
+                                    'bg-yellow-100': food.days_remaining >= 3 && food.days_remaining <= 5, 
+                                    'bg-red-100': food.days_remaining < 3
+                                }">
+                                    <span class="text-gray-700 px-6 py-3 flex items-center" x-text="food.days_remaining"></span>
                                 </td>
                             </tr>
                         </template>
@@ -100,67 +83,44 @@
         <script>
             function datatables() {
                 return {
-                    headings: [
-                        {
-                            'key': 'foodId',
-                            'value': 'Food ID'
-                        },
-                        {
-                            'key': 'foodName',
-                            'value': 'FoodName'
+                headings: [
+                    { key: 'foodId', value: 'Food ID' },
+                    { key: 'food_name', value: 'Food Name' },
+                    { key: 'current_count', value: 'Current Count' },
+                    { key: 'purchase_date', value: 'Purchase Date' },
+                    { key: 'actual_expiry', value: 'Expiry Date' },
+                    { key: 'days_remaining', value: 'Days Until Expiry' }
+                ],
+                items: [],
+
+                init() {
+                    // Fetch the data when the component is initialized
+                    fetch('http://127.0.0.1:5000/items', {
+                        headers: {
+                            'Content-Type': 'application/json'
                         }
-                    ],
-                    foods: [{
-                        "foodId": 1,
-                        "foodName": "Cort"
-                    }],
-                    selectedRows: [],
-    
-                    open: false,
-                    
-                    toggleColumn(key) {
-                        // Note: All td must have the same class name as the headings key! 
-                        let columns = document.querySelectorAll('.' + key);
-    
-                        if (this.$refs[key].classList.contains('hidden') && this.$refs[key].classList.contains(key)) {
-                            columns.forEach(column => {
-                                column.classList.remove('hidden');
-                            });
-                        } else {
-                            columns.forEach(column => {
-                                column.classList.add('hidden');
-                            });
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                        throw new Error('Network response was not ok');
                         }
-                    },
-    
-                    getRowDetail($event, id) {
-                        let rows = this.selectedRows;
-    
-                        if (rows.includes(id)) {
-                            let index = rows.indexOf(id);
-                            rows.splice(index, 1);
-                        } else {
-                            rows.push(id);
-                        }
-                    },
-    
-                    selectAllCheckbox($event) {
-                        let columns = document.querySelectorAll('.rowCheckbox');
-    
-                        this.selectedRows = [];
-    
-                        if ($event.target.checked == true) {
-                            columns.forEach(column => {
-                                column.checked = true
-                                this.selectedRows.push(parseInt(column.name))
-                            });
-                        } else {
-                            columns.forEach(column => {
-                                column.checked = false
-                            });
-                            this.selectedRows = [];
-                        }
-                    }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Data fetched:', data);
+                        const currentDate = new Date(); // Current date without time
+                            data.forEach(item => {
+                            const expiryDate = new Date(item.actual_expiry);
+                            const timeDifference = expiryDate.getTime() - currentDate.getTime();
+                            const daysRemaining = Math.ceil(timeDifference / (1000 * 3600 * 24));
+                            item.days_remaining = daysRemaining;
+                        });
+                        this.items = data;
+                    })
+                    .catch(error => {
+                        console.error('There has been a problem with your fetch operation:', error);
+                    });
+                }
                 }
             }
         </script>

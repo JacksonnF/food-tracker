@@ -1,25 +1,41 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
+
 from config import Config
 import os
+import sqlite3
+
 
 app = Flask(__name__)
-CORS(app, support_credentials=True)
+CORS(app)
 app.config.from_object(Config)
 
-# Sample data
-items = [
-    {"id": 1, "name": "Milk"},
-    {"id": 2, "name": "Bread"},
-    {"id": 3, "name": "Eggs"},
-]
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
+
+def get_db_connection():
+    print("DATABASE URL: ", app.config["DATABASE_URL"])
+    conn = sqlite3.connect(app.config["DATABASE_URL"])
+
+    def dict_factory(cursor, row):
+        d = {}
+        for idx, col in enumerate(cursor.description):
+            d[col[0]] = row[idx]
+        return d
+
+    conn.row_factory = dict_factory
+    return conn
 
 
 @app.route("/items", methods=["GET"])
 @cross_origin()
 def get_items():
-    return jsonify(items)
+    conn = get_db_connection()
+    food_items = conn.execute("SELECT * FROM FoodItem").fetchall()
+    conn.close()
+    for row in food_items:
+        print(row)
+    return jsonify(food_items)
 
 
 def allowed_file(filename):
@@ -27,7 +43,7 @@ def allowed_file(filename):
 
 
 @app.route("/upload", methods=["GET", "POST"])
-@cross_origin(support_credentials=True)
+@cross_origin()
 def upload_file():
     if "image" not in request.files:
         return jsonify({"error": "No file part"}), 400
