@@ -35,7 +35,8 @@ def get_items():
     conn.close()
     for row in food_items:
         print(row)
-    return jsonify(food_items)
+    response = jsonify(food_items)
+    return response
 
 
 def allowed_file(filename):
@@ -43,7 +44,7 @@ def allowed_file(filename):
 
 
 @app.route("/upload", methods=["GET", "POST"])
-@cross_origin()
+@cross_origin(support_credentials=True)
 def upload_file():
     if "image" not in request.files:
         return jsonify({"error": "No file part"}), 400

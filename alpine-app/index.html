@@ -67,8 +67,8 @@
                                 </td>
                                 <td class="border-dashed border-t border-gray-200 daysRemaining"
                                 :class="{
-                                    'bg-green-100': food.days_remaining > 5, 
-                                    'bg-yellow-100': food.days_remaining >= 3 && food.days_remaining <= 5, 
+                                    'bg-green-100': food.days_remaining > 7, 
+                                    'bg-yellow-100': food.days_remaining >= 3 && food.days_remaining <= 7, 
                                     'bg-red-100': food.days_remaining < 3
                                 }">
                                     <span class="text-gray-700 px-6 py-3 flex items-center" x-text="food.days_remaining"></span>
@@ -97,7 +97,8 @@
                     // Fetch the data when the component is initialized
                     fetch('http://127.0.0.1:5000/items', {
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
                         }
                     })
                     .then(response => {
