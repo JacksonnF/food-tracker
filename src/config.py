@@ -3,9 +3,11 @@ from dotenv import load_dotenv
 
 
 class Config:
-    load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    load_dotenv(os.path.join(basedir, "..", ".env"))
 
     # CORS_HEADERS = "Content-Type"
     SECRET_KEY = os.getenv("SECRET_KEY")
     DATABASE_URL = os.getenv("DATABASE_URL")
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')

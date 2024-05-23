@@ -1,14 +1,18 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
+from flask_sqlalchemy import SQLAlchemy
 
 from config import Config
 import os
 import sqlite3
 
+from db.models import db, FoodItem
 
 app = Flask(__name__)
 CORS(app)
 app.config.from_object(Config)
+# db = SQLAlchemy(app)
+db.init_app(app)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
@@ -30,9 +34,12 @@ def get_db_connection():
 @app.route("/items", methods=["GET"])
 @cross_origin()
 def get_items():
-    conn = get_db_connection()
-    food_items = conn.execute("SELECT * FROM FoodItem").fetchall()
-    conn.close()
+    # conn = get_db_connection()
+    # food_items = conn.execute("SELECT * FROM FoodItem").fetchall()
+    # conn.close()
+    food_items = FoodItem.query.all()
+    # get as list of dictionaries
+    food_items = [item.to_dict() for item in food_items]
     for row in food_items:
         print(row)
     response = jsonify(food_items)

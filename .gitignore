@@ -3,3 +3,4 @@ food_track_exp.ipynb
 .env
 /src/uploads
 /src/__pycache__
+/src/db/__pycache__
