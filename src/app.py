@@ -4,44 +4,23 @@ from flask_sqlalchemy import SQLAlchemy
 
 from config import Config
 import os
-import sqlite3
 
 from db.models import db, FoodItem
+from utils import process_receipt
 
 app = Flask(__name__)
 CORS(app)
 app.config.from_object(Config)
-# db = SQLAlchemy(app)
 db.init_app(app)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 
-def get_db_connection():
-    print("DATABASE URL: ", app.config["DATABASE_URL"])
-    conn = sqlite3.connect(app.config["DATABASE_URL"])
-
-    def dict_factory(cursor, row):
-        d = {}
-        for idx, col in enumerate(cursor.description):
-            d[col[0]] = row[idx]
-        return d
-
-    conn.row_factory = dict_factory
-    return conn
-
-
 @app.route("/items", methods=["GET"])
 @cross_origin()
 def get_items():
-    # conn = get_db_connection()
-    # food_items = conn.execute("SELECT * FROM FoodItem").fetchall()
-    # conn.close()
     food_items = FoodItem.query.all()
-    # get as list of dictionaries
     food_items = [item.to_dict() for item in food_items]
-    for row in food_items:
-        print(row)
     response = jsonify(food_items)
     return response
 
@@ -51,22 +30,24 @@ def allowed_file(filename):
 
 
 @app.route("/upload", methods=["GET", "POST"])
-@cross_origin(support_credentials=True)
+@cross_origin()
 def upload_file():
-    if "image" not in request.files:
-        return jsonify({"error": "No file part"}), 400
-
-    file = request.files["image"]
+    file = request.files["receipt"]
 
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
 
     if file and allowed_file(file.filename):
         filename = file.filename
-        file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+        file.save(os.path.join('/Users/jacksonf/personal/food-tracker/src/uploads', filename))
+        process_receipt()
         return jsonify({"message": "File successfully uploaded"}), 200
 
     return jsonify({"error": "File type not allowed"}), 400
+
+
+def process_receipt():
+    pass
 
 
 if __name__ == "__main__":

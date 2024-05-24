@@ -8,6 +8,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="antialiased sans-serif bg-gray-200">
+	        <section>
+            <h2>Add New Groceries</h2>
+            <button class="btn" @click="showForm = true" x-show="!showForm">Add Groceries</button>
+            
+            <div x-show="showForm" class="form-container">
+                <button class="btn close-btn" @click="showForm = false">Close</button>
+                <form @submit.prevent="addNewItem">
+                    <label for="itemName">Item Name:</label>
+                    <input type="text" id="itemName" x-model="newItemName" required>
+    
+                    <label for="expiresIn">Expires In (days):</label>
+                    <input type="number" id="expiresIn" x-model="newItemExpiresIn" required>
+    
+                    <button class="btn" type="submit">Add Item</button>
+                </form>
+    
+                <form @submit.prevent="uploadReceipt" enctype="multipart/form-data">
+                    <label for="receipt">Upload Receipt:</label>
+                    <input type="file" id="receipt" @change="handleFileChange" accept="image/*">
+    
+                    <button class="btn" type="submit">Upload Receipt</button>
+                </form>
+            </div>
+        </section>
 	<nav x-data="{ mobileMenuIsOpen: false }" @click.away="mobileMenuIsOpen = false" class="flex items-center justify-between bg-slate-100 border-b border-slate-300 px-6 py-4 dark:border-slate-700 dark:bg-slate-800" aria-label="penguin ui menu">
         <a href="#" class="text-2xl font-bold text-black dark:text-white">
             <span>Food Tracker</span>
@@ -263,5 +287,61 @@
 			}
 		}
 	</script>
+	   <script>
+        function groceryManager() {
+            return {
+                foodItems: [
+                    { name: 'Milk', expiresIn: 5, progress: 80 },
+                    { name: 'Bread', expiresIn: 3, progress: 50 },
+                    // Add more items as needed
+                ],
+                newItemName: '',
+                newItemExpiresIn: '',
+                imageFile: null,
+                showForm: false,
+    
+                addNewItem() {
+                    const daysToExpire = this.newItemExpiresIn;
+                    const progress = 100 - ((daysToExpire / 100) * 100); // Adjusted calculation
+                    this.foodItems.push({
+                        name: this.newItemName,
+                        expiresIn: daysToExpire,
+                        progress: progress
+                    });
+                    this.newItemName = '';
+                    this.newItemExpiresIn = '';
+                },
+    
+                handleFileChange(event) {
+                    this.imageFile = event.target.files[0];
+                },
+    
+                async uploadReceipt() {
+                    if (!this.imageFile) {
+                        alert("Please select an image file first.");
+                        return;
+                    }
+    
+                    let formData = new FormData();
+                    formData.append('receipt', this.imageFile);
+    
+                    try {
+                        let response = await fetch('http://127.0.0.1:5000/upload', {
+                            method: 'POST',
+                            body: formData
+                        });
+    
+                        if (response.ok) {
+                            alert("Receipt uploaded successfully!");
+                        } else {
+                            alert("Receipt upload failed.");
+                        }
+                    } catch (error) {
+                        alert("An error occurred while uploading the receipt.");
+                    }
+                }
+            }
+        }
+    </script>
 </body>
 </html>
