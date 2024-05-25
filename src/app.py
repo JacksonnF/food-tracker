@@ -1,8 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, current_user, login_user
-from werkzeug.security import check_password_hash
+from flask_login import current_user, login_user
 import sqlalchemy as sa
 
 from config import Config

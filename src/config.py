@@ -12,3 +12,5 @@ class Config:
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "app.db")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    TWILIO_SID = os.getenv("TWILIO_SID")
+    TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
