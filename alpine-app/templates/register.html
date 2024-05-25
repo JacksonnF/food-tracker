@@ -7,6 +7,7 @@
     <title>Register</title>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../js/register.js"></script>
 </head>
 
 <body class="antialiased sans-serif bg-gray-200 flex items-center justify-center min-h-screen">
@@ -33,43 +34,6 @@
             <p x-show="errorMessage" class="mt-4 text-red-600" x-text="errorMessage"></p>
         </form>
     </div>
-
-    <script>
-        function registerForm() {
-            return {
-                username: '',
-                email: '',
-                password: '',
-                errorMessage: '',
-
-                submitForm() {
-                    fetch('http://127.0.0.1:5000/register', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            username: this.username,
-                            email: this.email,
-                            password: this.password
-                        })
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Registration failed');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        window.location.href = 'login.html';
-                    })
-                    .catch(error => {
-                        this.errorMessage = 'Registration failed. Please check your details and try again.';
-                    });
-                }
-            }
-        }
-    </script>
 </body>
 
 </html>
