@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="antialiased sans-serif bg-gray-200 flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-sm p-6 bg-white rounded-lg shadow-md" x-data="loginForm()">
+        <h1 class="text-2xl font-bold text-center mb-6">Login</h1>
+        <form @submit.prevent="submitForm">
+            <div class="mb-4">
+                <label for="username" class="block text-gray-700">Username</label>
+                <input type="text" id="username" x-model="username" class="w-full px-4 py-2 mt-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
+            </div>
+            <div class="mb-6">
+                <label for="password" class="block text-gray-700">Password</label>
+                <input type="password" id="password" x-model="password" class="w-full px-4 py-2 mt-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
+            </div>
+            <div class="flex items-center justify-between">
+                <button type="submit" class="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    Login
+                </button>
+            </div>
+            <p x-show="errorMessage" class="mt-4 text-red-600" x-text="errorMessage"></p>
+        </form>
+        <div class="mt-4 text-center">
+            <button @click="redirectToRegister" class="w-full px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                Register
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function loginForm() {
+            return {
+                username: '',
+                password: '',
+                errorMessage: '',
+
+                submitForm() {
+                    fetch('http://127.0.0.1:5000/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        body: JSON.stringify({
+                            username: this.username,
+                            password: this.password
+                        })
+                    })
+                    .then(response => {
+                        console.log(response);
+                        if (!response.ok) {
+                            throw new Error('Invalid credentials');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        window.location.href = 'index.html';
+                    })
+                    .catch(error => {
+                        this.errorMessage = 'Login failed. Please check your username and password.';
+                    });
+                },
+
+                redirectToRegister() {
+                    window.location.href = 'register.html';
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

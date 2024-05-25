@@ -1,23 +1,70 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, current_user, login_user
+from werkzeug.security import check_password_hash
+import sqlalchemy as sa
 
 from config import Config
 import os
-import importlib
 from datetime import datetime
 
-from db.models import db, FoodItem, EstimatedExpiry
+from db.models import db, FoodItem, User, EstimatedExpiry, login
 import utils
 
-importlib.reload(utils)
-
 app = Flask(__name__)
+
 CORS(app)
 app.config.from_object(Config)
 db.init_app(app)
+login.init_app(app)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
+
+@login.user_loader
+def load_user(id):
+    return db.session.get(User, int(id))
+
+
+@app.route("/login", methods=["GET", "POST"])
+@cross_origin()
+def login_fn():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+
+    if current_user.is_authenticated:
+        print("already logged in")
+        return jsonify({"message": "Already Logged in"}), 200
+
+    user = db.session.scalar(sa.select(User).where(User.name == username))
+    print("user: ", user)
+    print("user pwd", user.password)
+    if user is None or not user.check_password(password):
+        print("Login Failed")
+        return jsonify({"message": "Login Failed"}), 401
+    login_user(user, remember=True)
+    return jsonify({"message": "Login successful"}), 200
+
+
+@app.route("/register", methods=["GET", "POST"])
+@cross_origin()
+def register_user():
+    if current_user.is_authenticated:
+        print("already logged in")
+        return jsonify({"message": "Already Logged in"}), 200
+
+    data = request.json
+    username = data.get("username")
+    email = data.get("email")
+    password = data.get("password")
+    print(data)
+    new_user = User(name=username, email=email)
+    new_user.set_password(password)
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({"message": "Registration successful"}), 200
 
 
 @app.route("/items", methods=["GET"])
