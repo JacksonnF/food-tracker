@@ -4,5 +4,6 @@ flask-login
 flask-sqlalchemy
 openai
 python-dotenv
+pyjwt
 requests
 twilio

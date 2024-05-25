@@ -2,10 +2,12 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 from flask_login import current_user, login_user
 import sqlalchemy as sa
+import jwt
 
 from config import Config
 import os
 from datetime import datetime
+from functools import wraps
 
 from db.models import db, FoodItem, User, EstimatedExpiry, login
 import utils
@@ -18,6 +20,24 @@ db.init_app(app)
 login.init_app(app)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get("Authorization")
+        if not token:
+            return jsonify({"message": "Token is missing!"}), 403
+
+        try:
+            data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+            current_user = db.session.get(User, data["user_id"])
+        except:
+            return jsonify({"message": "Token is invalid!"}), 403
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
 
 
 @login.user_loader
@@ -33,14 +53,11 @@ def login_fn():
     password = data.get("password")
 
     if current_user.is_authenticated:
-        print("already logged in")
         return jsonify({"message": "Already Logged in"}), 200
 
     user = db.session.scalar(sa.select(User).where(User.name == username))
-    print("user: ", user)
-    print("user pwd", user.password)
+
     if user is None or not user.check_password(password):
-        print("Login Failed")
         return jsonify({"message": "Login Failed"}), 401
     login_user(user, remember=True)
     return jsonify({"message": "Login successful"}), 200
@@ -50,16 +67,16 @@ def login_fn():
 @cross_origin()
 def register_user():
     if current_user.is_authenticated:
-        print("already logged in")
         return jsonify({"message": "Already Logged in"}), 200
 
     data = request.json
     username = data.get("username")
     email = data.get("email")
     password = data.get("password")
-    print(data)
+
     new_user = User(name=username, email=email)
     new_user.set_password(password)
+
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"message": "Registration successful"}), 200
@@ -82,7 +99,6 @@ def allowed_file(filename):
 @cross_origin()
 def upload_file():
     file = request.files["receipt"]
-    print(file)
 
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
@@ -95,7 +111,6 @@ def upload_file():
         file.save(f_path)
         food_items = utils.process_receipt(f_path)
         response = jsonify(food_items)
-        print("OPENAI RESPONSE: ", response)
         return response, 200
 
     return jsonify({"error": "File type not allowed"}), 400
@@ -108,13 +123,10 @@ def update_db():
     if not data:
         return jsonify({"error": "No input data provided"}), 400
     try:
-        print(data)
         for item in data:
-            print(item)
             existing_item = EstimatedExpiry.query.filter_by(
                 food_name=item["name"]
             ).first()
-            print(existing_item)
             if existing_item:
                 food_item = FoodItem(
                     food_name=item["name"],
