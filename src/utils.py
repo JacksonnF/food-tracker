@@ -13,14 +13,13 @@ def encode_image(image_path):
 
 def process_receipt(image_path):
     date = datetime.today().strftime("%Y-%m-%d")
-    prompt = """Return the items on the receipt in json format, 
+    prompt = (
+        f"""Return the items on the receipt in json format, 
     only including the name, quantity, and an esimated expiry date. 
     The current date is {date}.
     
-    An example json response would look like the following:
-    
-    {"items": [{"name": "Milk", "quantity": 1, "estimated_expiry_date": "2024-06-02"}]}""".format(
-        date=date
+    An example json response would look like the following:\n\n"""
+        + """{"items": [{"name": "Milk", "quantity": 1, "estimated_expiry_date": "2024-06-02"}]}"""
     )
     openai.api_key = Config.OPENAI_API_KEY
     base64_image = encode_image(image_path)
@@ -52,4 +51,5 @@ def process_receipt(image_path):
     response = requests.post(
         "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
     )
+    print("OPENAI RESPONSE: ", response.json()["choices"][0]["message"]["content"])
     return json.loads(response.json()["choices"][0]["message"]["content"])["items"]

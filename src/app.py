@@ -4,9 +4,13 @@ from flask_sqlalchemy import SQLAlchemy
 
 from config import Config
 import os
+import importlib
+from datetime import datetime
 
-from db.models import db, FoodItem
-from utils import process_receipt
+from db.models import db, FoodItem, EstimatedExpiry
+import utils
+
+importlib.reload(utils)
 
 app = Flask(__name__)
 CORS(app)
@@ -44,14 +48,67 @@ def upload_file():
             "/Users/jacksonfraser/Desktop/projects/food-tracker/src/uploads", filename
         )
         file.save(f_path)
-        food_items = process_receipt(f_path)
-        return food_items, 200
+        food_items = utils.process_receipt(f_path)
+        response = jsonify(food_items)
+        print("OPENAI RESPONSE: ", response)
+        return response, 200
 
     return jsonify({"error": "File type not allowed"}), 400
 
 
-def process_receipt():
-    pass
+@app.route("/updatedb", methods=["POST"])
+@cross_origin()
+def update_db():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No input data provided"}), 400
+    try:
+        print(data)
+        for item in data:
+            print(item)
+            existing_item = EstimatedExpiry.query.filter_by(
+                food_name=item["name"]
+            ).first()
+            print(existing_item)
+            if existing_item:
+                food_item = FoodItem(
+                    food_name=item["name"],
+                    current_count=item["quantity"],
+                    actual_expiry=datetime.strptime(
+                        item["estimated_expiry_date"], "%Y-%m-%d"
+                    ).date(),
+                    estimated_expiry_id=existing_item.expiry_id,
+                    user_id=1,
+                )
+                db.session.add(food_item)
+            else:
+                est_exp_item = EstimatedExpiry(
+                    food_name=item["name"],
+                    estimated_days=(
+                        (
+                            datetime.strptime(item["estimated_expiry_date"], "%Y-%m-%d")
+                            - datetime.now()
+                        ).days
+                    ),
+                )
+                db.session.add(est_exp_item)
+                db.session.commit()
+                food_item = FoodItem(
+                    food_name=item["name"],
+                    current_count=item["quantity"],
+                    actual_expiry=datetime.strptime(
+                        item["estimated_expiry_date"], "%Y-%m-%d"
+                    ).date(),
+                    estimated_expiry_id=est_exp_item.expiry_id,
+                    user_id=1,
+                )
+                db.session.add(food_item)
+        db.session.commit()
+
+        return jsonify({"message": "Database updated successfully!"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

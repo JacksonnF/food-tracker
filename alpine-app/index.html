@@ -31,11 +31,11 @@
             <li class="py-4"><a href="receipt.html" class="w-full text-lg font-medium text-slate-700 focus:underline dark:text-slate-300">Add Items</a></li>
         </ul>
     </nav>
-    <div class="container mx-auto py-6 px-4" x-data="datatables()" x-cloak>
-        <h1 class="text-3xl py-4 border-b mb-10">The Fridge</h1>
-
-        <div class="overflow-x-auto bg-white rounded-lg shadow overflow-y-auto relative"
-            style="height: 405px;">
+    <div class="container mx-auto py-6 px-4"></div>
+    <div class="container mx-auto py-6 px-4 bg-white rounded shadow-lg" x-data="datatables()" x-cloak>
+        <h1 class="text-3xl py-4 border-b mb-10 font-semibold text-gray-700">The Fridge</h1>
+    
+        <div class="overflow-x-auto bg-white rounded-lg shadow overflow-y-auto relative" style="height: 405px;">
             <table class="border-collapse table-auto w-full whitespace-no-wrap bg-white table-striped relative">
                 <thead>
                     <tr class="text-left">
@@ -46,7 +46,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <template x-for="food in items" :key="food.foodId">
+                    <template x-for="food in items" :key="food.food_id">
                         <tr>
                             <td class="border-dashed border-t border-gray-200 foodId">
                                 <span class="text-gray-700 px-6 py-3 flex items-center" x-text="food.food_id"></span>
@@ -64,11 +64,11 @@
                                 <span class="text-gray-700 px-6 py-3 flex items-center" x-text="food.actual_expiry"></span>
                             </td>
                             <td class="border-dashed border-t border-gray-200 daysRemaining"
-                            :class="{
-                                'bg-green-100': food.days_remaining > 7, 
-                                'bg-yellow-100': food.days_remaining >= 3 && food.days_remaining <= 7, 
-                                'bg-red-100': food.days_remaining < 3
-                            }">
+                                :class="{
+                                    'bg-green-100': food.days_remaining > 7, 
+                                    'bg-yellow-100': food.days_remaining >= 3 && food.days_remaining <= 7, 
+                                    'bg-red-100': food.days_remaining < 3
+                                }">
                                 <span class="text-gray-700 px-6 py-3 flex items-center" x-text="food.days_remaining"></span>
                             </td>
                         </tr>
@@ -77,5 +77,6 @@
             </table>
         </div>
     </div>
-    </body>
-    </html>
+</div>
+</body>
+</html>
