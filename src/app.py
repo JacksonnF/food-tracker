@@ -33,15 +33,19 @@ def allowed_file(filename):
 @cross_origin()
 def upload_file():
     file = request.files["receipt"]
+    print(file)
 
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
 
     if file and allowed_file(file.filename):
         filename = file.filename
-        file.save(os.path.join('/Users/jacksonf/personal/food-tracker/src/uploads', filename))
-        process_receipt()
-        return jsonify({"message": "File successfully uploaded"}), 200
+        f_path = os.path.join(
+            "/Users/jacksonfraser/Desktop/projects/food-tracker/src/uploads", filename
+        )
+        file.save(f_path)
+        food_items = process_receipt(f_path)
+        return food_items, 200
 
     return jsonify({"error": "File type not allowed"}), 400
 

@@ -10,4 +10,5 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
     DATABASE_URL = os.getenv("DATABASE_URL")
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "app.db")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
