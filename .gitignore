@@ -2,5 +2,8 @@
 food_track_exp.ipynb
 .env
 /src/uploads
-/src/__pycache__
-/src/db/__pycache__
+
+**/.DS_Store
+**/__pycache__/
+**/*.pyc
+**/*.pyo
