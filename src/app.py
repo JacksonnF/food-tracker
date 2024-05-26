@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
+from flask_migrate import Migrate
 import sqlalchemy as sa
 import jwt
 
@@ -19,6 +20,7 @@ app = Flask(
 CORS(app)
 app.config.from_object(Config)
 db.init_app(app)
+migrate = Migrate(app, db)
 
 with app.app_context():
     db.create_all()
