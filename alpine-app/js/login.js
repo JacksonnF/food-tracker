@@ -24,7 +24,12 @@ function loginForm() {
                 return response.json();
             })
             .then(data => {
-                window.location.href = 'index.html';
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                    window.location.href = 'index.html';
+                } else {
+                    throw new Error('No Token in Response');
+                }
             })
             .catch(error => {
                 this.errorMessage = 'Login failed. Please check your username and password.';

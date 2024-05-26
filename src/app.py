@@ -1,15 +1,15 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
-from flask_login import current_user, login_user
 import sqlalchemy as sa
 import jwt
 
 from config import Config
 import os
+import datetime as dt
 from datetime import datetime
 from functools import wraps
 
-from db.models import db, FoodItem, User, EstimatedExpiry, login
+from db.models import db, FoodItem, User, EstimatedExpiry
 import utils
 
 app = Flask(__name__)
@@ -17,7 +17,6 @@ app = Flask(__name__)
 CORS(app)
 app.config.from_object(Config)
 db.init_app(app)
-login.init_app(app)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
@@ -30,6 +29,7 @@ def token_required(f):
             return jsonify({"message": "Token is missing!"}), 403
 
         try:
+            token = token.split(" ")[1]
             data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
             current_user = db.session.get(User, data["user_id"])
         except:
@@ -40,9 +40,15 @@ def token_required(f):
     return decorated
 
 
-@login.user_loader
-def load_user(id):
-    return db.session.get(User, int(id))
+def generate_token(user):
+    token = jwt.encode(
+        {
+            "user_id": user.user_id,
+        },
+        app.config["SECRET_KEY"],
+        algorithm="HS256",
+    )
+    return token
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -52,23 +58,18 @@ def login_fn():
     username = data.get("username")
     password = data.get("password")
 
-    if current_user.is_authenticated:
-        return jsonify({"message": "Already Logged in"}), 200
-
     user = db.session.scalar(sa.select(User).where(User.name == username))
 
     if user is None or not user.check_password(password):
         return jsonify({"message": "Login Failed"}), 401
-    login_user(user, remember=True)
-    return jsonify({"message": "Login successful"}), 200
+
+    token = generate_token(user)
+    return jsonify({"token": token}), 200
 
 
 @app.route("/register", methods=["GET", "POST"])
 @cross_origin()
 def register_user():
-    if current_user.is_authenticated:
-        return jsonify({"message": "Already Logged in"}), 200
-
     data = request.json
     username = data.get("username")
     email = data.get("email")
@@ -84,8 +85,9 @@ def register_user():
 
 @app.route("/items", methods=["GET"])
 @cross_origin()
-def get_items():
-    food_items = FoodItem.query.all()
+@token_required
+def get_items(current_user):
+    food_items = FoodItem.query.filter_by(user_id=current_user.user_id).all()
     food_items = [item.to_dict() for item in food_items]
     response = jsonify(food_items)
     return response
@@ -97,7 +99,8 @@ def allowed_file(filename):
 
 @app.route("/upload", methods=["GET", "POST"])
 @cross_origin()
-def upload_file():
+@token_required
+def upload_file(current_user):
     file = request.files["receipt"]
 
     if file.filename == "":
@@ -118,7 +121,8 @@ def upload_file():
 
 @app.route("/updatedb", methods=["POST"])
 @cross_origin()
-def update_db():
+@token_required
+def update_db(current_user):
     data = request.get_json()
     if not data:
         return jsonify({"error": "No input data provided"}), 400
@@ -135,7 +139,7 @@ def update_db():
                         item["estimated_expiry_date"], "%Y-%m-%d"
                     ).date(),
                     estimated_expiry_id=existing_item.expiry_id,
-                    user_id=1,
+                    user_id=current_user.user_id,
                 )
                 db.session.add(food_item)
             else:
@@ -157,7 +161,7 @@ def update_db():
                         item["estimated_expiry_date"], "%Y-%m-%d"
                     ).date(),
                     estimated_expiry_id=est_exp_item.expiry_id,
-                    user_id=1,
+                    user_id=current_user.user_id,
                 )
                 db.session.add(food_item)
         db.session.commit()
