@@ -9,7 +9,7 @@ class Config:
     # CORS_HEADERS = "Content-Type"
     SECRET_KEY = os.getenv("SECRET_KEY")
     # DATABASE_URL = os.getenv("DATABASE_URL")
-    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "")
+    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
     # SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "app.db")
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "").replace(
         "postgres://", "postgresql://"

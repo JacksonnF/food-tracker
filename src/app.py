@@ -135,10 +135,9 @@ def upload_file(current_user):
 
     if file and allowed_file(file.filename):
         filename = file.filename
-        f_path = os.path.join(
-            "/Users/jacksonfraser/Desktop/projects/food-tracker/src/uploads", filename
-        )
-        # file.save(f_path)
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        f_path = os.path.join(basedir, app.config["UPLOAD_FOLDER"], filename)
+        file.save(f_path)
         food_items = utils.process_receipt(f_path)
         response = jsonify(food_items)
         return response, 200
