@@ -1,5 +1,5 @@
 import openai
-from config import Config
+from src.config import Config
 import requests
 import base64
 from datetime import datetime

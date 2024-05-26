@@ -3,14 +3,14 @@ from flask_cors import CORS, cross_origin
 import sqlalchemy as sa
 import jwt
 
-from config import Config
+from src.config import Config
 import os
 import datetime as dt
 from datetime import datetime
 from functools import wraps
 
-from db.models import db, FoodItem, User, EstimatedExpiry
-import utils
+from src.db.models import db, FoodItem, User, EstimatedExpiry
+import src.utils as utils
 
 app = Flask(
     __name__, template_folder="../alpine-app/templates", static_folder="../alpine-app"
@@ -133,7 +133,7 @@ def upload_file(current_user):
         f_path = os.path.join(
             "/Users/jacksonfraser/Desktop/projects/food-tracker/src/uploads", filename
         )
-        file.save(f_path)
+        # file.save(f_path)
         food_items = utils.process_receipt(f_path)
         response = jsonify(food_items)
         return response, 200
