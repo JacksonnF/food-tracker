@@ -5,7 +5,8 @@ function loginForm() {
         errorMessage: '',
 
         submitForm() {
-            fetch('http://127.0.0.1:5000/login', {
+            const BASE_URL = window.location.origin;
+            fetch(`${BASE_URL}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -26,7 +27,7 @@ function loginForm() {
             .then(data => {
                 if (data.token) {
                     localStorage.setItem('token', data.token);
-                    window.location.href = 'index.html';
+                    window.location.href = urls.index;
                 } else {
                     throw new Error('No Token in Response');
                 }
@@ -37,7 +38,7 @@ function loginForm() {
         },
 
         redirectToRegister() {
-            window.location.href = 'register.html';
+            window.location.href = urls.register;
         }
     }
 }

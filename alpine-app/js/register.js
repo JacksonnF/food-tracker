@@ -6,7 +6,8 @@ function registerForm() {
         errorMessage: '',
 
         submitForm() {
-            fetch('http://127.0.0.1:5000/register', {
+            const BASE_URL = window.location.origin;
+            fetch(`${BASE_URL}/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -24,7 +25,7 @@ function registerForm() {
                 return response.json();
             })
             .then(data => {
-                window.location.href = 'login.html';
+                window.location.href = urls.login;
             })
             .catch(error => {
                 this.errorMessage = 'Registration failed. Please check your details and try again.';

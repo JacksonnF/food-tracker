@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
 import sqlalchemy as sa
 import jwt
@@ -12,13 +12,35 @@ from functools import wraps
 from db.models import db, FoodItem, User, EstimatedExpiry
 import utils
 
-app = Flask(__name__)
+app = Flask(
+    __name__, template_folder="../alpine-app/templates", static_folder="../alpine-app"
+)
 
 CORS(app)
 app.config.from_object(Config)
 db.init_app(app)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
+
+@app.route("/")
+def index_page():
+    return render_template("index.html")
+
+
+@app.route("/receipt")
+def receipt_page():
+    return render_template("receipt.html")
+
+
+@app.route("/login-page")
+def login_page():
+    return render_template("login.html")
+
+
+@app.route("/register-page")
+def register_page():
+    return render_template("register.html")
 
 
 def token_required(f):

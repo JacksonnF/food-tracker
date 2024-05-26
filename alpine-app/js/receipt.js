@@ -5,6 +5,11 @@ function groceryManager() {
         loading: false,
         items: [],
 
+        init() {
+            this.showLoginModal = false;
+            console.log(this.showLoginModal);
+        },
+
         handleFileChange(event) {
             this.imageFile = event.target.files[0];
         },
@@ -27,7 +32,8 @@ function groceryManager() {
                     alert("Not Logged In");
                     return;
                 }
-                let response = await fetch('http://127.0.0.1:5000/upload', {
+                const BASE_URL = window.location.origin;
+                let response = await fetch(`${BASE_URL}/upload`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     },
@@ -61,7 +67,8 @@ function groceryManager() {
                     alert("Not Logged In");
                     return;
                 }
-                let response = await fetch('http://127.0.0.1:5000/updatedb', {
+                const BASE_URL = window.location.origin;
+                let response = await fetch(`${BASE_URL}/updatedb`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
