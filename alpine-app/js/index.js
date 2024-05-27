@@ -14,11 +14,10 @@ function datatables() {
 
         init() {
             const BASE_URL = window.location.origin;
-            this.showLoginModal = false;
             const token = localStorage.getItem('token');
             if (!token) {
                 console.error("No Token Found, Please Login");
-                this.showLoginModal = true;
+                window.location.href = urls.login;
                 return;
             }
             fetch(`${BASE_URL}/items`, {

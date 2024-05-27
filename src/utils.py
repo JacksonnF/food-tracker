@@ -1,17 +1,21 @@
 import openai
-from src.config import Config
+from config import Config
 import requests
 import base64
 from datetime import datetime
 import json
 
 
-def encode_image(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
+# def encode_image(image_path):
+#     with open(image_path, "rb") as image_file:
+#         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
-def process_receipt(image_path):
+def encode_image(img):
+    return base64.b64encode(img).decode("utf-8")
+
+
+def process_receipt(img):
     date = datetime.today().strftime("%Y-%m-%d")
     prompt = (
         f"""Return the items on the receipt in json format, 
@@ -22,7 +26,7 @@ def process_receipt(image_path):
         + """{"items": [{"name": "Milk", "quantity": 1, "estimated_expiry_date": "2024-06-02"}]}"""
     )
     openai.api_key = Config.OPENAI_API_KEY
-    base64_image = encode_image(image_path)
+    base64_image = encode_image(img)
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {openai.api_key}",
@@ -51,5 +55,6 @@ def process_receipt(image_path):
     response = requests.post(
         "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
     )
+    print(response.json())
     print("OPENAI RESPONSE: ", response.json()["choices"][0]["message"]["content"])
     return json.loads(response.json()["choices"][0]["message"]["content"])["items"]

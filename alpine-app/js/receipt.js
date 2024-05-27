@@ -6,8 +6,12 @@ function groceryManager() {
         items: [],
 
         init() {
-            this.showLoginModal = false;
-            console.log(this.showLoginModal);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error("No Token Found, Please Login");
+                window.location.href = urls.login;
+                return;
+            }
         },
 
         handleFileChange(event) {

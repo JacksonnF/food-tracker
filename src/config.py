@@ -15,5 +15,6 @@ class Config:
         "postgres://", "postgresql://"
     ) or "sqlite:///" + os.path.join(basedir, "app.db")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    SESSION_TYPE = os.getenv("SESSION_TYPE")
     # TWILIO_SID = os.getenv("TWILIO_SID")
     # TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
