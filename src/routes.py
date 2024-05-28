@@ -19,6 +19,6 @@ def init_routes(app):
         return render_template("login.html")
 
     @app.route("/register-page")
-    # @token_required
-    def register_page():
+    @token_required
+    def register_page(current_user):
         return render_template("register.html")
