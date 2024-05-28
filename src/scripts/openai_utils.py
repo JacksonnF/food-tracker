@@ -1,4 +1,4 @@
-import openai
+import scripts.openai_utils as openai_utils
 from config import Config
 import requests
 import base64
@@ -20,11 +20,11 @@ def process_receipt(img):
     An example json response would look like the following:\n\n"""
         + """{"items": [{"name": "Milk", "quantity": 1, "estimated_expiry_date": "2024-06-02"}]}"""
     )
-    openai.api_key = Config.OPENAI_API_KEY
+    openai_utils.api_key = Config.OPENAI_API_KEY
     base64_image = encode_image(img)
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {openai.api_key}",
+        "Authorization": f"Bearer {openai_utils.api_key}",
     }
     payload = {
         "model": "gpt-4o",

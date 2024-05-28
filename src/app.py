@@ -5,7 +5,6 @@ from flask_session import Session
 
 from config import Config
 from db.models import db
-import utils as utils
 
 from auth import init_auth
 from routes import init_routes

@@ -76,3 +76,8 @@ def init_auth(app):
         db.session.add(new_user)
         db.session.commit()
         return jsonify({"message": "Registration successful"}), 200
+
+    @app.route("/logout", methods=["POST"])
+    def logout_fn():
+        session.pop("token", None)
+        return jsonify({"message": "Logged out successfully"}), 200

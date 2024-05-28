@@ -4,7 +4,7 @@ from datetime import datetime
 
 from db.models import db, FoodItem, EstimatedExpiry
 from auth import token_required
-import utils
+import scripts.openai_utils as openai_utils
 
 
 def init_api(app):
@@ -33,7 +33,7 @@ def init_api(app):
             return jsonify({"error": "No selected file"}), 400
 
         if file and allowed_file(file.filename):
-            food_items = utils.process_receipt(file.read())
+            food_items = openai_utils.process_receipt(file.read())
             response = jsonify(food_items)
             return response, 200
 
