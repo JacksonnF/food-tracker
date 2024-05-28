@@ -63,7 +63,7 @@ def init_auth(app):
 
     @app.route("/register", methods=["GET", "POST"])
     @cross_origin()
-    @token_required
+    # @token_required
     def register_user():
         data = request.json
         username = data.get("username")
