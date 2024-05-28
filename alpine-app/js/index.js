@@ -9,25 +9,34 @@ function datatables() {
             { key: 'days_remaining', value: 'Days Until Expiry' }
         ],
         items: [],
+        currentSort: '',
+        currentSortDir: 'asc',
 
         init() {
-            // Fetch the data when the component is initialized
-            fetch('http://127.0.0.1:5000/items', {
+            const BASE_URL = window.location.origin;
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error("No Token Found, Please Login");
+                window.location.href = urls.login;
+                return;
+            }
+            fetch(`${BASE_URL}/items`, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
+                    'Access-Control-Allow-Origin': '*',
+                    'Authorization': `Bearer ${token}`
                 }
             })
             .then(response => {
                 if (!response.ok) {
-                throw new Error('Network response was not ok');
+                    throw new Error('Network response was not ok');
                 }
                 return response.json();
             })
             .then(data => {
                 console.log('Data fetched:', data);
                 const currentDate = new Date(); // Current date without time
-                    data.forEach(item => {
+                data.forEach(item => {
                     const expiryDate = new Date(item.actual_expiry);
                     const timeDifference = expiryDate.getTime() - currentDate.getTime();
                     const daysRemaining = Math.ceil(timeDifference / (1000 * 3600 * 24));
@@ -58,6 +67,6 @@ function datatables() {
                     return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
                 }
             });
-        }
+        },
     }
 }

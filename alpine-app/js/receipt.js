@@ -5,6 +5,15 @@ function groceryManager() {
         loading: false,
         items: [],
 
+        init() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error("No Token Found, Please Login");
+                window.location.href = urls.login;
+                return;
+            }
+        },
+
         handleFileChange(event) {
             this.imageFile = event.target.files[0];
         },
@@ -21,7 +30,17 @@ function groceryManager() {
             formData.append('receipt', this.imageFile);
 
             try {
-                let response = await fetch('http://127.0.0.1:5000/upload', {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    console.error("No Token Found, Please Login");
+                    alert("Not Logged In");
+                    return;
+                }
+                const BASE_URL = window.location.origin;
+                let response = await fetch(`${BASE_URL}/upload`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
                     method: 'POST',
                     body: formData
                 });
@@ -46,10 +65,18 @@ function groceryManager() {
 
         async submitUpdatedItems() {
             try {
-                let response = await fetch('http://127.0.0.1:5000/updatedb', {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    console.error("No Token Found, Please Login");
+                    alert("Not Logged In");
+                    return;
+                }
+                const BASE_URL = window.location.origin;
+                let response = await fetch(`${BASE_URL}/updatedb`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(this.items)
                 });

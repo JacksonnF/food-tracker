@@ -1,23 +1,32 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template, redirect, url_for, session
 from flask_cors import CORS, cross_origin
-from flask_login import current_user, login_user
+from flask_migrate import Migrate
+from flask_session import Session
 import sqlalchemy as sa
 import jwt
 
 from config import Config
 import os
+import datetime as dt
 from datetime import datetime
 from functools import wraps
 
-from db.models import db, FoodItem, User, EstimatedExpiry, login
-import utils
+from db.models import db, FoodItem, User, EstimatedExpiry
+import utils as utils
 
-app = Flask(__name__)
+app = Flask(
+    __name__, template_folder="../alpine-app/templates", static_folder="../alpine-app"
+)
 
 CORS(app)
 app.config.from_object(Config)
 db.init_app(app)
-login.init_app(app)
+migrate = Migrate(app, db)
+app.config["SESSION_SQLALCHEMY"] = db
+Session(app)
+
+with app.app_context():
+    db.create_all()
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
@@ -25,24 +34,58 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.headers.get("Authorization")
+        token = None
+        if "Authorization" in request.headers:
+            token = request.headers.get("Authorization")
+        if "token" in session:
+            token = session["token"]
         if not token:
-            return jsonify({"message": "Token is missing!"}), 403
-
+            return redirect(url_for("login_page"))
         try:
+            token = token.split(" ")[1]
             data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
             current_user = db.session.get(User, data["user_id"])
+            if not current_user:
+                redirect(url_for("login_page"))
         except:
-            return jsonify({"message": "Token is invalid!"}), 403
+            return redirect(url_for("login_page"))
 
         return f(current_user, *args, **kwargs)
 
     return decorated
 
 
-@login.user_loader
-def load_user(id):
-    return db.session.get(User, int(id))
+def generate_token(user):
+    token = jwt.encode(
+        {
+            "user_id": user.user_id,
+        },
+        app.config["SECRET_KEY"],
+        algorithm="HS256",
+    )
+    return token
+
+
+@app.route("/")
+@token_required
+def index_page(current_user):
+    return render_template("index.html")
+
+
+@app.route("/receipt")
+@token_required
+def receipt_page(current_user):
+    return render_template("receipt.html")
+
+
+@app.route("/login-page")
+def login_page():
+    return render_template("login.html")
+
+
+@app.route("/register-page")
+def register_page():
+    return render_template("register.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -52,23 +95,20 @@ def login_fn():
     username = data.get("username")
     password = data.get("password")
 
-    if current_user.is_authenticated:
-        return jsonify({"message": "Already Logged in"}), 200
-
     user = db.session.scalar(sa.select(User).where(User.name == username))
 
     if user is None or not user.check_password(password):
         return jsonify({"message": "Login Failed"}), 401
-    login_user(user, remember=True)
-    return jsonify({"message": "Login successful"}), 200
+
+    token = generate_token(user)
+    session["token"] = f"Bearer {token}"
+
+    return jsonify({"token": token}), 200
 
 
 @app.route("/register", methods=["GET", "POST"])
 @cross_origin()
 def register_user():
-    if current_user.is_authenticated:
-        return jsonify({"message": "Already Logged in"}), 200
-
     data = request.json
     username = data.get("username")
     email = data.get("email")
@@ -84,8 +124,9 @@ def register_user():
 
 @app.route("/items", methods=["GET"])
 @cross_origin()
-def get_items():
-    food_items = FoodItem.query.all()
+@token_required
+def get_items(current_user):
+    food_items = FoodItem.query.filter_by(user_id=current_user.user_id).all()
     food_items = [item.to_dict() for item in food_items]
     response = jsonify(food_items)
     return response
@@ -97,19 +138,15 @@ def allowed_file(filename):
 
 @app.route("/upload", methods=["GET", "POST"])
 @cross_origin()
-def upload_file():
+@token_required
+def upload_file(current_user):
     file = request.files["receipt"]
 
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
 
     if file and allowed_file(file.filename):
-        filename = file.filename
-        f_path = os.path.join(
-            "/Users/jacksonfraser/Desktop/projects/food-tracker/src/uploads", filename
-        )
-        file.save(f_path)
-        food_items = utils.process_receipt(f_path)
+        food_items = utils.process_receipt(file.read())
         response = jsonify(food_items)
         return response, 200
 
@@ -118,7 +155,8 @@ def upload_file():
 
 @app.route("/updatedb", methods=["POST"])
 @cross_origin()
-def update_db():
+@token_required
+def update_db(current_user):
     data = request.get_json()
     if not data:
         return jsonify({"error": "No input data provided"}), 400
@@ -135,7 +173,7 @@ def update_db():
                         item["estimated_expiry_date"], "%Y-%m-%d"
                     ).date(),
                     estimated_expiry_id=existing_item.expiry_id,
-                    user_id=1,
+                    user_id=current_user.user_id,
                 )
                 db.session.add(food_item)
             else:
@@ -157,7 +195,7 @@ def update_db():
                         item["estimated_expiry_date"], "%Y-%m-%d"
                     ).date(),
                     estimated_expiry_id=est_exp_item.expiry_id,
-                    user_id=1,
+                    user_id=current_user.user_id,
                 )
                 db.session.add(food_item)
         db.session.commit()
