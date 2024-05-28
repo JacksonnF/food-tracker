@@ -2,6 +2,7 @@
 food_track_exp.ipynb
 .env
 /migrations
+/src/db/app.db
 
 **/.DS_Store
 **/__pycache__/
