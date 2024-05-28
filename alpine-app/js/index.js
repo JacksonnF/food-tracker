@@ -15,11 +15,6 @@ function datatables() {
         init() {
             const BASE_URL = window.location.origin;
             const token = localStorage.getItem('token');
-            if (!token) {
-                console.error("No Token Found, Please Login");
-                window.location.href = urls.login;
-                return;
-            }
             fetch(`${BASE_URL}/items`, {
                 headers: {
                     'Content-Type': 'application/json',

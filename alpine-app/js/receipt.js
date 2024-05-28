@@ -5,15 +5,6 @@ function groceryManager() {
         loading: false,
         items: [],
 
-        init() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                console.error("No Token Found, Please Login");
-                window.location.href = urls.login;
-                return;
-            }
-        },
-
         handleFileChange(event) {
             this.imageFile = event.target.files[0];
         },
